@@ -4,7 +4,7 @@ import './MindMapList.css';
 const MindMapList = ({ mindMaps, onSelect, activeId }) => {
     return (
         <div className="mindmap-list-sidebar">
-            <h2 className="sidebar-header">Mind Maps</h2>
+            <h2 className="sidebar-header">Lösungs Bibliothek</h2>
             <ul>
                 {mindMaps.map(map => (
                     <li

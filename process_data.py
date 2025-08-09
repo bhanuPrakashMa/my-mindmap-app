@@ -84,7 +84,10 @@ def load_json_file(file_path):
         return None
 
 # Define file paths
-base_path = 'e:/chall_dehn/final/my-mindmap-app'
+#base_path = 'e:/chall_dehn/final/my-mindmap-app'
+base_path = os.path.dirname(os.path.abspath(__file__))
+
+
 files = {
     'hauptprozess_map': f'{base_path}/hauptprozess_map.json',
     'enhanced_matrix': f'{base_path}/enhanced_matrix.json',
@@ -125,7 +128,9 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
     for ps_id in partial_solution_ids:
         ps_name = process_lookup.get(ps_id, f"Partial Solution {ps_id}")
         ps_entry = {
-            "name": f"Phase: {ps_id} - {ps_name}",
+            "name": f"id: {ps_id}",
+            "Description": f"Des: {ps_name}",
+            
             "children": []
         }
         building_blocks = enhanced_matrix.get(ps_id, [])

@@ -29,11 +29,10 @@ const MindMap = ({ data }) => {
 
         svg.selectAll("*").remove();
 
-        // Add a defs section for the arrowhead marker
         svg.append("defs").append("marker")
             .attr("id", "arrowhead")
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 20) // Adjust the position of the arrow relative to the circle
+            .attr("refX", 20)
             .attr("refY", 0)
             .attr("markerWidth", 10)
             .attr("markerHeight", 10)
@@ -66,9 +65,19 @@ const MindMap = ({ data }) => {
 
         update(rootRef.current);
 
-        const initialScale = 0.8;
-        const initialTransform = d3.zoomIdentity.translate(width / 2, height / 2).scale(initialScale);
-        svg.transition().duration(750).call(d3.zoom().transform, initialTransform);
+        // const initialScale = 0.8;
+        // const initialTransform = d3.zoomIdentity.translate(width / 2, height / 2).scale(initialScale);
+        // svg.transition().duration(750).call(d3.zoom().transform, initialTransform);
+
+        const initialScale = 1; // A scale of 1 is a good starting point
+        const svgWidth = width + margin.left + margin.right;
+        const svgHeight = height + margin.top + margin.bottom;
+
+        const initialTransform = d3.zoomIdentity
+            .translate(svgWidth / 1, svgHeight / 3)
+            .scale(initialScale);
+
+        svg.call(zoom).transition().duration(750).call(zoom.transform, initialTransform);
 
         function update(source) {
             const treeData = treeRef.current(rootRef.current);
@@ -79,59 +88,69 @@ const MindMap = ({ data }) => {
             const node = gRef.current.selectAll("g.node")
                 .data(nodes, d => d.id || (d.id = ++i));
 
+            // Enter new nodes at the source's previous position.
             const nodeEnter = node.enter().append("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${source.y0},${source.x0})`)
                 .on("click", (event, d) => handleClick(event, d));
 
-            nodeEnter.each(function(d) {
-                const nodeGroup = d3.select(this);
-                if (d.depth === 0) { // Root node
-                    nodeGroup.append("rect")
-                        .attr("width", 30)
-                        .attr("height", 30)
-                        .attr("x", -10)
-                        .attr("y", -10)
-                        .style("fill", "red");
-                } else if (d.children || d._children) { // Parent node
-                    nodeGroup.append("path")
-                        .attr("d", "M -10,10 L 0,-10 L 10,10 Z")
-                        .attr("transform", "scale(1)") // Triangle path
-                        .style("fill", "green");
-                } else { // Leaf node (no children)
-                    nodeGroup.append("circle")
-                        .attr("r", 1e-6)
-                        .style("fill", d => d._children ? "lightsteelblue" : "#fff");
-                }
-            });
+            // Append a rectangle for the node box
+            nodeEnter.append("rect")
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("x", -70)
+                .attr("y", -15)
+                .attr("width", 140)
+                .attr("height", 30)
+                .style("fill", d => {
+                    // Assign different colors based on depth
+                    switch (d.depth) {
+                        case 0: return "#f28e2c"; // Orange for root
+                        case 1: return "#e15759"; // Red for level 1
+                        case 2: return "#76b7b2"; // Teal for level 2
+                        case 3: return "#4e79a7"; // Blue for level 3
+                        default: return "#bab0ac"; // Gray for other levels
+                    }
+                })
+                .style("stroke", "#000")
+                .style("stroke-width", "1px");
 
+            // Append text for the node box
             nodeEnter.append("text")
-                .attr("x", d => d.children || d._children ? -13 : 13)
-                .attr("dy", ".35em")
-                .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
                 .text(d => d.data.name)
-                .style("fill-opacity", 1e-6)
-                .style("font-size", d => d.depth === 0 ? "16px" : d.depth === 1 ? "14px" : "12px");
+                .style("fill-opacity", 1e-6);
 
+            // Update nodes to their new position.
             const nodeUpdate = nodeEnter.merge(node);
             nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.y},${d.x})`);
+
+            // Update styles for the rect and text
+            nodeUpdate.select("rect")
+                .attr("width", 140)
+                .attr("height", 30)
+                .attr("x", -70)
+                .attr("y", -15)
+                .attr("cursor", "pointer")
+                .style("fill", d => {
+                    switch (d.depth) {
+                        case 0: return "#f28e2c";
+                        case 1: return "#e15759";
+                        case 2: return "#76b7b2";
+                        case 3: return "#4e79a7";
+                        default: return "#bab0ac";
+                    }
+                });
             
-            nodeUpdate.each(function(d) {
-                const nodeGroup = d3.select(this);
-                if (d.depth === 0) {
-                    nodeGroup.select("rect").attr("width", 20).attr("height", 20).attr("x", -10).attr("y", -10).attr("cursor", "pointer");
-                } else if (d.children || d._children) {
-                    nodeGroup.select("path").attr("d", "M -10,10 L 0,-10 L 10,10 Z").attr("transform", "scale(1)").attr("cursor", "pointer");
-                } else {
-                    nodeGroup.select("circle").attr("r", 10).attr("cursor", "pointer");
-                }
-                nodeGroup.select("text").style("fill-opacity", 1);
-            });
+            nodeUpdate.select("text")
+                .style("fill-opacity", 1)
+                .style("font-size", "14px");
 
-            nodeUpdate.select("text").style("fill-opacity", 1);
-
+            // Exit removed nodes.
             const nodeExit = node.exit().transition().duration(duration).attr("transform", d => `translate(${source.y},${source.x})`).remove();
-            nodeExit.select("circle").attr("r", 1e-6);
+            
+            nodeExit.select("rect").attr("width", 1e-4).attr("height", 1e-4);
             nodeExit.select("text").style("fill-opacity", 1e-6);
 
             const link = gRef.current.selectAll("path.link").data(links, d => d.target.id);
@@ -142,7 +161,7 @@ const MindMap = ({ data }) => {
                     const o = { x: source.x0, y: source.y0 };
                     return d3.linkHorizontal()({ source: o, target: o });
                 })
-                .attr("marker-end", "url(#arrowhead)"); // Add the arrowhead to the end of the link
+                .attr("marker-end", "url(#arrowhead)");
 
             linkEnter.merge(link).transition().duration(duration)
                 .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
@@ -200,25 +219,36 @@ const MindMap = ({ data }) => {
         <div style={{ position: 'relative' }}>
             <style>
                 {`
-                    .node circle, .node rect, .node path {
+                    .node rect {
                         stroke: steelblue;
-                        stroke-width: 3px;
+                        stroke-width: 1px;
+                        transition: stroke-width 0.2s ease;
                     }
-                    .node text { font-size: 12px; }
-                    .link { fill: none; stroke: #ccc; stroke-width: 2px; }
+                    .node text { 
+                        font-size: 12px;
+                        fill: white;
+                        pointer-events: none;
+                        font-weight: bold;
+                    }
+                    .link { 
+                        fill: none; 
+                        stroke: #ccc; 
+                        stroke-width: 2px;
+                    }
                     .details-box {
                         position: absolute;
                         top: 20px;
                         right: 20px;
                         background: rgba(255, 255, 255, 0.9);
                         border: 1px solid #ccc;
-                        padding: 15px;
+                        padding: 20px;
                         border-radius: 8px;
                         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        max-width: 300px;
+                        max-width: 450px;
                         text-align: left;
                     }
                     .details-box h3 { margin-top: 0; }
+                    .details-box p { margin: 5px 0; }
                     .go-back-btn {
                         position: absolute;
                         top: 20px;
@@ -241,6 +271,17 @@ const MindMap = ({ data }) => {
             {selectedNode && (
                 <div className="details-box">
                     <h3>Node Details</h3>
+                    {Object.keys(selectedNode).map((key) => {
+                        // Check for null or undefined values, and skip the 'children' and 'name' keys
+                        if (key !== 'children' && key !== 'name' && selectedNode[key] !== null && selectedNode[key] !== undefined) {
+                            return (
+                                <p key={key}>
+                                    <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {selectedNode[key].toString()}
+                                </p>
+                            );
+                        }
+                        return null;
+                    })}
                     <p><strong>Name:</strong> {selectedNode.name}</p>
                 </div>
             )}

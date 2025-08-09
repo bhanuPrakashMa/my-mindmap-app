@@ -147,7 +147,7 @@ function App() {
 
     return (
         <div className="App">
-            <h1 className="main-header">Dynamic Mind Map Viewer</h1>
+            <h1 className="main-header">Production Equipment Engieering</h1>
             <div className="main-content">
                 {loading ? (
                     <div className="loading-state">
