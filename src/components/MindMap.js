@@ -32,7 +32,7 @@ const MindMap = ({ data }) => {
         svg.append("defs").append("marker")
             .attr("id", "arrowhead")
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 20)
+            .attr("refX", 24)
             .attr("refY", 0)
             .attr("markerWidth", 10)
             .attr("markerHeight", 10)
@@ -83,7 +83,8 @@ const MindMap = ({ data }) => {
             const treeData = treeRef.current(rootRef.current);
             const nodes = treeData.descendants();
             const links = treeData.links();
-            nodes.forEach(d => d.y = d.depth * 180);
+            // Increase horizontal separation to accommodate larger node rectangles
+            nodes.forEach(d => d.y = d.depth * 260);
 
             const node = gRef.current.selectAll("g.node")
                 .data(nodes, d => d.id || (d.id = ++i));
@@ -98,10 +99,10 @@ const MindMap = ({ data }) => {
             nodeEnter.append("rect")
                 .attr("rx", 5)
                 .attr("ry", 5)
-                .attr("x", -70)
-                .attr("y", -15)
-                .attr("width", 140)
-                .attr("height", 30)
+                .attr("x", -110)
+                .attr("y", -24)
+                .attr("width", 220)
+                .attr("height", 48)
                 .style("fill", d => {
                     // Assign different colors based on depth
                     switch (d.depth) {
@@ -128,10 +129,10 @@ const MindMap = ({ data }) => {
 
             // Update styles for the rect and text
             nodeUpdate.select("rect")
-                .attr("width", 140)
-                .attr("height", 30)
-                .attr("x", -70)
-                .attr("y", -15)
+                .attr("width", 220)
+                .attr("height", 48)
+                .attr("x", -110)
+                .attr("y", -24)
                 .attr("cursor", "pointer")
                 .style("fill", d => {
                     switch (d.depth) {
@@ -145,7 +146,7 @@ const MindMap = ({ data }) => {
             
             nodeUpdate.select("text")
                 .style("fill-opacity", 1)
-                .style("font-size", "14px");
+                .style("font-size", "16px");
 
             // Exit removed nodes.
             const nodeExit = node.exit().transition().duration(duration).attr("transform", d => `translate(${source.y},${source.x})`).remove();
