@@ -1,0 +1,13 @@
+.mindmap-wrapper.active {
+    width: 100%;
+    height: 100%;
+    border-right: none; /* No need for a separator here */
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Ensure the SVG scales correctly within the container */
+.mindmap-wrapper svg {
+    width: 100%;
+    height: 100%;
+}
