@@ -1,22 +1,41 @@
+html, body, #root, .App {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5;
+}
+
 .App {
-  font-family: sans-serif;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .main-header {
-  margin: 20px;
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
 }
 
 .main-content {
-  display: flex;
-  flex: 1;
-  border: 1px solid #ddd;
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Hide overflow of this container */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.mindmap-list-container {
+    flex-shrink: 0;
+    width: 250px;
+    padding: 15px;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto; /* Enable vertical scrolling for the list */
 }
 
 .mindmap-view-container {
-  flex: 1;
-  height: 100%;
+    flex-grow: 1;
+    overflow: auto; /* Enable scrolling for the mind map */
 }
