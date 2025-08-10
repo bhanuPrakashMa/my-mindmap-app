@@ -188,9 +188,9 @@ function App() {
                 <Route path="/" element={<HomePage />} /> {/* Set the new HomePage as the root route */}
                 <Route path="/mindmaps" element={
                     <div className="App">
-                        <h1 className="main-header">Production Equipment Engineering</h1>
+                        <h1 className="main-header">Assistent für Technische Ausrüstung</h1>
                         <div className='save-button-container'>
-                            <button className="save-button" onClick={handleSave}>Save as PDF</button>
+                            <button className="save-button" onClick={handleSave}>Speichern</button>
                             {saveMessage && <div className="save-message">{saveMessage}</div>}
                         </div>
                         <div className="main-content">

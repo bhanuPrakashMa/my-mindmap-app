@@ -157,7 +157,6 @@
 
 
 
-
 import json
 import sys
 import os
@@ -176,17 +175,19 @@ def load_json_file(file_path):
         print(f"Error: Failed to decode '{file_path}' as UTF-8: {e}", file=sys.stderr)
         sys.exit(1)
 
-# base_path = 'e:/chall_dehn/final/my-mindmap-app'
+# Get the directory of the script
 base_path = os.path.dirname(os.path.abspath(__file__))
 hauptprozess_map = load_json_file(f'{base_path}/hauptprozess_map.json')
 enhanced_matrix = load_json_file(f'{base_path}/enhanced_matrix.json')
 process_data = load_json_file(f'{base_path}/process_data.json')
 component_data = load_json_file(f'{base_path}/component_data.json')
 
+# Create lookup dictionaries with additional attributes
 process_lookup = {
     str(int(p['Prozessnummer'])): {
         'name': p['Prozessname'],
         'Prozessart': p['Prozessart'],
+        'Merkmalsklasse 1': p.get('Merkmalsklasse 1', '')
     } for p in process_data if p['Prozessnummer']
 }
 
@@ -196,6 +197,7 @@ component_lookup = {
         'Bauteilkategorie': c['Bauteilkategorie'],
         'Hersteller': c['Hersteller'],
         'Typ': c['Typ'],
+        'Beschreibung': c.get('Beschreibung', '')
     } for c in component_data if c['Lfd. Nummer']
 }
 
@@ -207,6 +209,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
     process_info = process_lookup.get(process_id, {
         'name': f"Process {process_id}",
         'Prozessart': '',
+        'Merkmalsklasse 1': ''
     })
     
     # Initialize process entry
@@ -218,6 +221,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
             "name": process_info['name'],
             "attributes": {
                 "Prozessart": process_info['Prozessart'],
+                "Merkmalsklasse 1": process_info['Merkmalsklasse 1']
             },
             "children": []
         }
@@ -228,12 +232,14 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
         ps_info = process_lookup.get(ps_id, {
             'name': f"Partial Solution {ps_id}",
             'Prozessart': '',
+            'Merkmalsklasse 1': ''
         })
         ps_entry = {
             "id": ps_id,
             "name": ps_info['name'],
             "attributes": {
                 "Prozessart": ps_info['Prozessart'],
+                "Merkmalsklasse 1": ps_info['Merkmalsklasse 1']
             },
             "children": []
         }
@@ -246,6 +252,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                 'Bauteilkategorie': '',
                 'Hersteller': '',
                 'Typ': '',
+                'Beschreibung': ''
             })
             bb_entry = {
                 "id": str(bb_id),
@@ -254,6 +261,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                     "Bauteilkategorie": bb_info['Bauteilkategorie'],
                     "Hersteller": bb_info['Hersteller'],
                     "Typ": bb_info['Typ'],
+                    "Beschreibung": bb_info['Beschreibung']
                 }
             }
             ps_entry["children"].append(bb_entry)
@@ -274,6 +282,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                 'Bauteilkategorie': '',
                 'Hersteller': '',
                 'Typ': '',
+                'Beschreibung': ''
             })
             bb_entry = {
                 "id": str(bb_id),
@@ -282,6 +291,7 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                     "Bauteilkategorie": bb_info['Bauteilkategorie'],
                     "Hersteller": bb_info['Hersteller'],
                     "Typ": bb_info['Typ'],
+                    "Beschreibung": bb_info['Beschreibung']
                 }
             }
             dummy_ps_entry["children"].append(bb_entry)

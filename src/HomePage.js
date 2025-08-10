@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Input } from './components/ui/input';
-import { Card, CardContent, CardHeader } from './components/ui/card';
 import { toast } from 'sonner';
 import { pipeline } from '@huggingface/transformers';
 import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
-import './HomePage.css'; 
+import './HomePage.css';
 
-// Simple cosine similarity helper
 function cosineSimilarity(a, b) {
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) {
@@ -34,7 +31,6 @@ const HomePage = () => {
   const extractorRef = useRef(null);
   const navigate = useNavigate();
 
-  // Load model once
   useEffect(() => {
     const init = async () => {
       try {
@@ -54,7 +50,6 @@ const HomePage = () => {
     void init();
   }, []);
 
-  // Auto-load Excel from public folder
   useEffect(() => {
     const loadExcel = async () => {
       try {
@@ -81,7 +76,6 @@ const HomePage = () => {
     void loadExcel();
   }, []);
 
-  // Auto precompute embeddings when model and data are ready
   useEffect(() => {
     const go = async () => {
       if (!extractorRef.current || !processNames.length || embeddings) return;
@@ -141,75 +135,69 @@ const HomePage = () => {
     }
   };
 
-  const onSubmit = (e) => {
+const onSubmit = (e) => {
     e.preventDefault();
+    // Normalize query: remove extra spaces, punctuation, and convert to lowercase
+    const normalizedQuery = query
+      .trim()
+      .toLowerCase()
+      .replace(/[\.\s]+/g, ' ')
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue');
+    const targetPhrase = "ich moechte eine maschine mit einem etikett versehen";
     
-    // Check if the query is "printout" and navigate accordingly
-    if (query.trim().toLowerCase() === "printout") {
+    if (normalizedQuery === targetPhrase || normalizedQuery.includes("etikett") || query.trim().toLowerCase() === "printout") {
       navigate("/mindmaps");
     } else {
-      // If it's not "printout", run the search logic as before
       void runSearch();
     }
   };
 
   const disabled = loadingModel || computing;
-  
+
   return (
-    <main className="min-h-screen relative overflow-hidden">
-      {/* Ambient brand gradient */}
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-30">
-        <div className="bg-gradient-primary blur-3xl h-[40rem] w-[40rem] rounded-full mx-auto mt-[-10rem]" />
-      </div>
-
-      <section className="container py-16 max-w-4xl">
-        <header className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-balance">
-            Bitte geben Sie Ihr Anliegen ein
-          </h1>
-          <p className="home-description">
-            Explore our mind maps and documentation.
-          </p>
+    <main className="home-page">
+      <div className="gradient-background"></div>
+      <section className="content-section">
+        <header className="header">
+          <h1 className="title">Bitte geben Sie Ihr Anliegen ein</h1>
+          {/* <p className="description">Explore our mind maps and documentation.</p> */}
         </header>
-
-        <Card className="elevated">
-          <CardHeader>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form className="grid gap-3" onSubmit={onSubmit}>
-              <Input
+        <div className="card">
+          <div className="card-header"></div>
+          <div className="card-content">
+            <form className="search-form" onSubmit={onSubmit}>
+              <input
                 placeholder="z. B. Ich möchte eine Maschine mit einem Etikett versehen."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="bg-white border border-black p-3 rounded-lg shadow text-black"
+                className="search-input"
               />
-              <div className="flex justify-center">
+              <div className="button-container">
                 <button 
                   type="submit" 
                   disabled={disabled} 
-                  className="bg-violet-600 text-white hover:bg-violet-700 focus:ring focus:ring-violet-300 p-2 rounded-md font-medium text-sm"
+                  className={disabled ? "submit-button disabled" : "submit-button"}
                 >
-                  Enter
+                  Suchen
                 </button>
               </div>
             </form>
-
-            <div className="grid gap-2">
-              <h2 className="text-lg font-semibold">Matched Hauptprozesse (IDs)</h2>
+            {/* <div className="results-section">
+              <h2 className="results-title">Matched Hauptprozesse (IDs)</h2>
               {!results.length ? (
-                <p className="text-sm text-muted-foreground">No matches yet. Try the example query above.</p>
+                <p className="no-results">No matches yet. Try the example query above.</p>
               ) : (
-                <ul className="flex flex-wrap gap-2">
+                <ul className="results-list">
                   {results.map((id, idx) => (
-                    <li key={idx} className="px-3 py-1 rounded-md bg-secondary text-secondary-foreground text-sm">
-                      {id}
-                    </li>
+                    <li key={idx} className="result-item">{id}</li>
                   ))}
                 </ul>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </div> */}
+          </div>
+        </div>
       </section>
     </main>
   );
