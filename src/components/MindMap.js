@@ -151,18 +151,18 @@ const MindMap = ({ data }) => {
                         // Leaf nodes: cuboid
                         group.append("path")
                             .attr("d", `M0 20 L0 80 L100 80 L100 20 L0 20 Z`)
-                            .style("fill", "#249d61ff")
-                            .style("stroke", "#249d61ff")
+                            .style("fill", "#05393dff")
+                            .style("stroke", "#05393dff")
                             .style("stroke-width", "1px");
                         group.append("path")
                             .attr("d", `M0 20 L20 0 L120 0 L100 20 Z`)
-                            .style("fill", "#249d61ff")
-                            .style("stroke", "#249d61ff")
+                            .style("fill", "#05393dff")
+                            .style("stroke", "#05393dff")
                             .style("stroke-width", "1px");
                         group.append("path")
                             .attr("d", `M100 20 L120 0 L120 60 L100 80 Z`)
-                            .style("fill", "#249d61ff")
-                            .style("stroke", "#249d61ff")
+                            .style("fill", "#05393dff")
+                            .style("stroke", "#05393dff")
                             .style("stroke-width", "1px");
                     }
                 });

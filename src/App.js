@@ -101,6 +101,8 @@
 import React, { useState, useEffect } from 'react';
 import MindMapContainer from './components/MindMapContainer';
 import MindMapList from './components/MindMapList';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import './App.css';
 
 function App() {
@@ -109,7 +111,9 @@ function App() {
     const [selectedMapData, setSelectedMapData] = useState(null);
     const [mindMapKey, setMindMapKey] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [saveMessage, setSaveMessage] = useState('');
 
+    // Function to fetch mind maps from the backend
     const loadMindMaps = async () => {
         setLoading(true);
         try {
@@ -133,21 +137,66 @@ function App() {
         }
     };
 
+    // Function to handle saving the mind map as a PDF
+    const handleSave = async () => {
+        setSaveMessage('Saving...');
+        try {
+            const mindMapElement = document.querySelector('.mindmap-view-container');
+            if (!mindMapElement) {
+                throw new Error("Mind map container element not found.");
+            }
+
+            // Use html2canvas to capture the content of the container
+            const canvas = await html2canvas(mindMapElement, {
+                useCORS: true,
+                scale: 2,
+            });
+
+            // Get the image data from the canvas
+            const imgData = canvas.toDataURL('image/png');
+
+            // Create a new jsPDF instance, setting a landscape orientation
+            const pdf = new jsPDF('landscape', 'pt', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            // Add the image to the PDF
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+            // Save the PDF file with a dynamic name
+            pdf.save(`mindmap-${selectedMapId || 'untitled'}.pdf`);
+
+            setSaveMessage('Solutions saved in PDF form.');
+        } catch (error) {
+            console.error("Failed to save PDF:", error);
+            setSaveMessage('Failed to save the Solutions.');
+        } finally {
+            // Clear the message after a delay
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
+
+    // Load mind maps on initial component mount
     useEffect(() => {
         loadMindMaps();
     }, []);
 
+    // Update the data whenever a new map is selected
     useEffect(() => {
         const newMap = allMindMaps.find(map => map.id === selectedMapId);
         if (newMap) {
             setSelectedMapData(newMap.data);
-            setMindMapKey(prevKey => prevKey + 1);
+            setMindMapKey(prevKey => prevKey + 1); // Increment the key to force re-mount
         }
     }, [selectedMapId, allMindMaps]);
 
     return (
         <div className="App">
-            <h1 className="main-header"> Production Equipment Engieering </h1>
+            <h1 className="main-header"> Production Equipment Engineering </h1>
+            <div className='save-button-container'>
+                <button className="save-button" onClick={handleSave}>Save as PDF</button>
+                {saveMessage && <div className="save-message">{saveMessage}</div>}
+            </div>
             <div className="main-content">
                 {loading ? (
                     <div className="loading-state">
