@@ -56,18 +56,12 @@ const MindMap = ({ data }) => {
         root.x0 = height / 2;
         root.y0 = 0;
         
-        const collapse = (d) => {
-            if (d.children) {
-                d._children = d.children;
-                d._children.forEach(collapse);
-                d.children = null;
-            }
-        };
-
+        // On initialization, collapse all children of the root node
         if (root.children) {
-            root.children.forEach(collapse);
+            root._children = root.children;
+            root.children = null;
         }
-
+        
         update(root);
 
         const initialScale = 1;
@@ -94,13 +88,40 @@ const MindMap = ({ data }) => {
                 .attr("transform", d => `translate(${source.y0},${source.x0})`)
                 .on("click", (event, d) => handleClick(event, d));
 
-            nodeEnter.append("rect")
+            // Append text and add two lines for ID and name
+            nodeEnter.append("text")
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .style("fill-opacity", 1e-6)
+                .each(function(d) {
+                    const name = d.data.name;
+                    const truncatedName = name.length > 9 ? name.substring(0, 9) + '...' : name;
+
+                    d3.select(this).append("tspan")
+                        .attr("x", 0)
+                        .attr("y", -8)
+                        .text(`ID: ${d.data.id}`);
+                    d3.select(this).append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 8)
+                        .text(truncatedName);
+                });
+
+            // Now that text is set, we can calculate the real dimensions
+            nodeEnter.each(function(d) {
+                const bbox = d3.select(this).select("text").node().getBBox();
+                d.width = bbox.width;
+                d.height = bbox.height;
+            });
+            
+            // Append the rectangle and size it based on the text's bounding box
+            nodeEnter.insert("rect", "text")
                 .attr("rx", 5)
                 .attr("ry", 5)
-                .attr("x", -110)
-                .attr("y", -24)
-                .attr("width", 220)
-                .attr("height", 48)
+                .attr("x", d => -(d.width / 2) - 15) // Add padding
+                .attr("y", d => -(d.height / 2) - 10) // Add padding
+                .attr("width", d => d.width + 30) // Add padding
+                .attr("height", d => d.height + 20) // Add padding
                 .style("fill", d => {
                     switch (d.depth) {
                         case 0: return "#f28e2c";
@@ -114,12 +135,6 @@ const MindMap = ({ data }) => {
                 .style("stroke-width", "1px")
                 .attr("cursor", "pointer")
                 .style("opacity", 1e-6);
-
-            nodeEnter.append("text")
-                .attr("dy", "0.35em")
-                .attr("text-anchor", "middle")
-                .text(d => d.data.name)
-                .style("fill-opacity", 1e-6);
 
             const nodeUpdate = nodeEnter.merge(node);
             nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.y},${d.x})`);
@@ -209,7 +224,7 @@ const MindMap = ({ data }) => {
                         transition: stroke-width 0.2s ease;
                     }
                     .node text { 
-                        font-size: 12px;
+                        font-size: 16px;
                         fill: white;
                         pointer-events: none;
                         font-weight: bold;

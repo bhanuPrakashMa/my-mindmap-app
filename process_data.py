@@ -164,13 +164,16 @@ import os
 
 def load_json_file(file_path):
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.", file=sys.stderr)
         sys.exit(1)
-    except json.JSONDecodeError:
-        print(f"Error: File '{file_path}' contains invalid JSON.", file=sys.stderr)
+    except json.JSONDecodeError as e:
+        print(f"Error: File '{file_path}' contains invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+    except UnicodeDecodeError as e:
+        print(f"Error: Failed to decode '{file_path}' as UTF-8: {e}", file=sys.stderr)
         sys.exit(1)
 
 base_path = 'e:/chall_dehn/final/my-mindmap-app'
@@ -179,37 +182,10 @@ enhanced_matrix = load_json_file(f'{base_path}/enhanced_matrix.json')
 process_data = load_json_file(f'{base_path}/process_data.json')
 component_data = load_json_file(f'{base_path}/component_data.json')
 
-
-# import json
-# import sys
-
-# # Load input JSON files
-# with open('hauptprozess_map.json', 'r') as f:
-#     hauptprozess_map = json.load(f)
-
-# with open('enhanced_matrix.json', 'r') as f:
-#     enhanced_matrix = json.load(f)
-
-# with open('process_data.json', 'r') as f:
-#     process_data = json.load(f)
-
-# with open('component_data.json', 'r') as f:
-#     component_data = json.load(f)
-
-# Create lookup dictionaries for process and component data
 process_lookup = {
     str(int(p['Prozessnummer'])): {
         'name': p['Prozessname'],
         'Prozessart': p['Prozessart'],
-        # 'Merkmalsklasse 1': p['Merkmalsklasse 1'],
-        # 'Merkmalsklasse 2': p['Merkmalsklasse 2'],
-        # 'Merkmalsklasse 3': p['Merkmalsklasse 3'],
-        # 'Randbedingung 1': p['Randbedingung 1'],
-        # 'Randbedingung 2': p['Randbedingung 2'],
-        # 'Ablageort konstruktiv': p['Ablageort konstruktiv'],
-        # 'Ablageort steuerungstechnisch': p['Ablageort steuerungstechnisch'],
-        # 'Ablageort prüftechnisch': p['Ablageort prüftechnisch'],
-        # 'Ablageort robotertechnisch': p['Ablageort robotertechnisch']
     } for p in process_data if p['Prozessnummer']
 }
 
@@ -219,16 +195,6 @@ component_lookup = {
         'Bauteilkategorie': c['Bauteilkategorie'],
         'Hersteller': c['Hersteller'],
         'Typ': c['Typ'],
-        # 'Eigenschaft 1': c['Eigenschaft 1'],
-        # 'Wert 1': c['Wert 1'],
-        # 'Eigenschaft 2': c['Eigenschaft 2'],
-        # 'Wert 2': c['Wert 2'],
-        # 'Eigenschaft 3': c['Eigenschaft 3'],
-        # 'Wert 3': c['Wert 3'],
-        # 'Ablageort konstruktiv': c['Ablageort konstruktiv'],
-        # 'Ablageort steuerungstechnisch': c['Ablageort steuerungstechnisch'],
-        # 'Ablageort prüftechnisch': c['Ablageort prüftechnisch'],
-        # 'Ablageort robotertechnisch': c['Ablageort robotertechnisch']
     } for c in component_data if c['Lfd. Nummer']
 }
 
@@ -240,15 +206,6 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
     process_info = process_lookup.get(process_id, {
         'name': f"Process {process_id}",
         'Prozessart': '',
-        # 'Merkmalsklasse 1': '',
-        # 'Merkmalsklasse 2': '',
-        # 'Merkmalsklasse 3': '',
-        # 'Randbedingung 1': '',
-        # 'Randbedingung 2': '',
-        # 'Ablageort konstruktiv': '',
-        # 'Ablageort steuerungstechnisch': '',
-        # 'Ablageort prüftechnisch': '',
-        # 'Ablageort robotertechnisch': ''
     })
     
     # Initialize process entry
@@ -256,18 +213,10 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
         "id": f"Process_{process_id}",
         "title": process_info['name'],
         "data": {
-            "name": process_id,
+            "id": process_id,
+            "name": process_info['name'],
             "attributes": {
                 "Prozessart": process_info['Prozessart'],
-                # "Merkmalsklasse 1": process_info['Merkmalsklasse 1'],
-                # "Merkmalsklasse 2": process_info['Merkmalsklasse 2'],
-                # "Merkmalsklasse 3": process_info['Merkmalsklasse 3'],
-                # "Randbedingung 1": process_info['Randbedingung 1'],
-                # "Randbedingung 2": process_info['Randbedingung 2'],
-                # "Ablageort konstruktiv": process_info['Ablageort konstruktiv'],
-                # "Ablageort steuerungstechnisch": process_info['Ablageort steuerungstechnisch'],
-                # "Ablageort prüftechnisch": process_info['Ablageort prüftechnisch'],
-                # "Ablageort robotertechnisch": process_info['Ablageort robotertechnisch']
             },
             "children": []
         }
@@ -278,31 +227,12 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
         ps_info = process_lookup.get(ps_id, {
             'name': f"Partial Solution {ps_id}",
             'Prozessart': '',
-            # 'Merkmalsklasse 1': '',
-            # 'Merkmalsklasse 2': '',
-            # 'Merkmalsklasse 3': '',
-            # 'Randbedingung 1': '',
-            # 'Randbedingung 2': '',
-            # 'Ablageort konstruktiv': '',
-            # 'Ablageort steuerungstechnisch': '',
-            # 'Ablageort prüftechnisch': '',
-            # 'Ablageort robotertechnisch': ''
         })
         ps_entry = {
-            # "name": f"Phase: {ps_id} - {ps_info['name']}",
-            "name": f"ID: {ps_id}",
+            "id": ps_id,
+            "name": ps_info['name'],
             "attributes": {
-                "Name": ps_info['name'],
                 "Prozessart": ps_info['Prozessart'],
-                # "Merkmalsklasse 1": ps_info['Merkmalsklasse 1'],
-                # "Merkmalsklasse 2": ps_info['Merkmalsklasse 2'],
-                # "Merkmalsklasse 3": ps_info['Merkmalsklasse 3'],
-                # "Randbedingung 1": ps_info['Randbedingung 1'],
-                # "Randbedingung 2": ps_info['Randbedingung 2'],
-                # "Ablageort konstruktiv": ps_info['Ablageort konstruktiv'],
-                # "Ablageort steuerungstechnisch": ps_info['Ablageort steuerungstechnisch'],
-                # "Ablageort prüftechnisch": ps_info['Ablageort prüftechnisch'],
-                # "Ablageort robotertechnisch": ps_info['Ablageort robotertechnisch']
             },
             "children": []
         }
@@ -315,43 +245,25 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                 'Bauteilkategorie': '',
                 'Hersteller': '',
                 'Typ': '',
-                # 'Eigenschaft 1': '',
-                # 'Wert 1': '',
-                # 'Eigenschaft 2': '',
-                # 'Wert 2': '',
-                # 'Eigenschaft 3': '',
-                # 'Wert 3': '',
-                # 'Ablageort konstruktiv': '',
-                # 'Ablageort steuerungstechnisch': '',
-                # 'Ablageort prüftechnisch': '',
-                # 'Ablageort robotertechnisch': ''
             })
-            ps_entry["children"].append({
-                "name": f"ID-{bb_id}",
+            bb_entry = {
+                "id": str(bb_id),
+                "name": bb_info['name'],
                 "attributes": {
-                    "Name": bb_info['name'],
                     "Bauteilkategorie": bb_info['Bauteilkategorie'],
                     "Hersteller": bb_info['Hersteller'],
                     "Typ": bb_info['Typ'],
-                    # "Eigenschaft 1": bb_info['Eigenschaft 1'],
-                    # "Wert 1": bb_info['Wert 1'],
-                    # "Eigenschaft 2": bb_info['Eigenschaft 2'],
-                    # "Wert 2": bb_info['Wert 2'],
-                    # "Eigenschaft 3": bb_info['Eigenschaft 3'],
-                    # "Wert 3": bb_info['Wert 3'],
-                    # "Ablageort konstruktiv": bb_info['Ablageort konstruktiv'],
-                    # "Ablageort steuerungstechnisch": bb_info['Ablageort steuerungstechnisch'],
-                    # "Ablageort prüftechnisch": bb_info['Ablageort prüftechnisch'],
-                    # "Ablageort robotertechnisch": bb_info['Ablageort robotertechnisch']
                 }
-            })
+            }
+            ps_entry["children"].append(bb_entry)
         
         process_entry["data"]["children"].append(ps_entry)
     
     # Add processes with no partial solutions but with building blocks
     if not partial_solution_ids and process_id in enhanced_matrix and enhanced_matrix[process_id]:
-        ps_entry = {
-            "name": f"Direct Components for {process_id}",
+        dummy_ps_entry = {
+            "id": f"direct_{process_id}",
+            "name": "Direct Components",
             "attributes": {},
             "children": []
         }
@@ -361,38 +273,24 @@ for process_id, partial_solution_ids in hauptprozess_map.items():
                 'Bauteilkategorie': '',
                 'Hersteller': '',
                 'Typ': '',
-                'Eigenschaft 1': '',
-                'Wert 1': '',
-                # 'Eigenschaft 2': '',
-                # 'Wert 2': '',
-                # 'Eigenschaft 3': '',
-                # 'Wert 3': '',
-                # 'Ablageort konstruktiv': '',
-                # 'Ablageort steuerungstechnisch': '',
-                # 'Ablageort prüftechnisch': '',
-                # 'Ablageort robotertechnisch': ''
             })
-            ps_entry["children"].append({
-                "name": f"{bb_id} - {bb_info['name']}",
+            bb_entry = {
+                "id": str(bb_id),
+                "name": bb_info['name'],
                 "attributes": {
                     "Bauteilkategorie": bb_info['Bauteilkategorie'],
                     "Hersteller": bb_info['Hersteller'],
                     "Typ": bb_info['Typ'],
-                    # "Eigenschaft 1": bb_info['Eigenschaft 1'],
-                    # "Wert 1": bb_info['Wert 1'],
-                    # "Eigenschaft 2": bb_info['Eigenschaft 2'],
-                    # "Wert 2": bb_info['Wert 2'],
-                    # "Eigenschaft 3": bb_info['Eigenschaft 3'],
-                    # "Wert 3": bb_info['Wert 3'],
-                    # "Ablageort konstruktiv": bb_info['Ablageort konstruktiv'],
-                    # "Ablageort steuerungstechnisch": bb_info['Ablageort steuerungstechnisch'],
-                    # "Ablageort prüftechnisch": bb_info['Ablageort prüftechnisch'],
-                    # "Ablageort robotertechnisch": bb_info['Ablageort robotertechnisch']
                 }
-            })
-        process_entry["data"]["children"].append(ps_entry)
+            }
+            dummy_ps_entry["children"].append(bb_entry)
+        process_entry["data"]["children"].append(dummy_ps_entry)
     
     output.append(process_entry)
 
-# Output JSON to stdout
-json.dump(output, sys.stdout, indent=2)
+# Ensure UTF-8 encoding for stdout
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+# Output JSON to stdout with no ASCII escaping
+json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
