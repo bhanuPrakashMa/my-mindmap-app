@@ -9,7 +9,7 @@
 
 .sidebar-header {
     margin-top: 0;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     color: #333;
 }
 
@@ -24,7 +24,7 @@
     cursor: pointer;
     border-radius: 8px;
     transition: background-color 0.2s, transform 0.2s;
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: #555;
 }
 

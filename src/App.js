@@ -147,7 +147,7 @@ function App() {
 
     return (
         <div className="App">
-            <h1 className="main-header">Production Equipment Engieering</h1>
+            <h1 className="main-header"> Production Equipment Engieering </h1>
             <div className="main-content">
                 {loading ? (
                     <div className="loading-state">
@@ -159,7 +159,7 @@ function App() {
                             mindMaps={allMindMaps}
                             onSelect={setSelectedMapId}
                             activeId={selectedMapId}
-                        />
+                        /> 
                         <div className="mindmap-view-container">
                             <MindMapContainer
                                 data={selectedMapData}

@@ -4,28 +4,33 @@ import * as d3 from 'd3';
 const MindMap = ({ data }) => {
     const svgRef = useRef();
     const gRef = useRef();
-    const treeRef = useRef(d3.tree().size([800, 800 - 180]));
-    const rootRef = useRef(null);
     const [currentRoot, setCurrentRoot] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+    const containerRef = useRef();
     let i = 0;
     const duration = 750;
 
     useEffect(() => {
-        if (!data || !data.name) {
+        if (!data || !data.name || !containerRef.current) {
             return;
         }
 
         setCurrentRoot(data);
         setSelectedNode(null);
 
+        // Get container dimensions for a fluid layout
+        const containerWidth = containerRef.current.offsetWidth;
+        const containerHeight = containerRef.current.offsetHeight;
+
         const margin = { top: 20, right: 90, bottom: 30, left: 90 };
-        const width = 800 - margin.left - margin.right;
-        const height = 800 - margin.top - margin.bottom;
+        const width = containerWidth - margin.left - margin.right;
+        const height = containerHeight - margin.top - margin.bottom;
+
+        const tree = d3.tree().size([height, width - 180]);
 
         const svg = d3.select(svgRef.current)
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom);
+            .attr("width", containerWidth)
+            .attr("height", containerHeight);
 
         svg.selectAll("*").remove();
 
@@ -47,9 +52,9 @@ const MindMap = ({ data }) => {
         const zoom = d3.zoom().scaleExtent([0.1, 8]).on("zoom", (event) => gRef.current.attr("transform", event.transform));
         svg.call(zoom);
 
-        rootRef.current = d3.hierarchy(data, d => d.children);
-        rootRef.current.x0 = height / 2;
-        rootRef.current.y0 = 0;
+        const root = d3.hierarchy(data, d => d.children);
+        root.x0 = height / 2;
+        root.y0 = 0;
         
         const collapse = (d) => {
             if (d.children) {
@@ -59,43 +64,36 @@ const MindMap = ({ data }) => {
             }
         };
 
-        if (rootRef.current.children) {
-            rootRef.current.children.forEach(collapse);
+        if (root.children) {
+            root.children.forEach(collapse);
         }
 
-        update(rootRef.current);
+        update(root);
 
-        // const initialScale = 0.8;
-        // const initialTransform = d3.zoomIdentity.translate(width / 2, height / 2).scale(initialScale);
-        // svg.transition().duration(750).call(d3.zoom().transform, initialTransform);
-
-        const initialScale = 1; // A scale of 1 is a good starting point
+        const initialScale = 1;
         const svgWidth = width + margin.left + margin.right;
         const svgHeight = height + margin.top + margin.bottom;
 
         const initialTransform = d3.zoomIdentity
-            .translate(svgWidth / 1, svgHeight / 3)
+            .translate(svgWidth / 4, svgHeight / 3)
             .scale(initialScale);
 
-        svg.call(zoom).transition().duration(750).call(zoom.transform, initialTransform);
+        svg.call(zoom).transition().duration(duration).call(zoom.transform, initialTransform);
 
         function update(source) {
-            const treeData = treeRef.current(rootRef.current);
+            const treeData = tree(root);
             const nodes = treeData.descendants();
             const links = treeData.links();
-            // Increase horizontal separation to accommodate larger node rectangles
             nodes.forEach(d => d.y = d.depth * 260);
 
             const node = gRef.current.selectAll("g.node")
                 .data(nodes, d => d.id || (d.id = ++i));
 
-            // Enter new nodes at the source's previous position.
             const nodeEnter = node.enter().append("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${source.y0},${source.x0})`)
                 .on("click", (event, d) => handleClick(event, d));
 
-            // Append a rectangle for the node box
             nodeEnter.append("rect")
                 .attr("rx", 5)
                 .attr("ry", 5)
@@ -104,37 +102,6 @@ const MindMap = ({ data }) => {
                 .attr("width", 220)
                 .attr("height", 48)
                 .style("fill", d => {
-                    // Assign different colors based on depth
-                    switch (d.depth) {
-                        case 0: return "#f28e2c"; // Orange for root
-                        case 1: return "#e15759"; // Red for level 1
-                        case 2: return "#76b7b2"; // Teal for level 2
-                        case 3: return "#4e79a7"; // Blue for level 3
-                        default: return "#bab0ac"; // Gray for other levels
-                    }
-                })
-                .style("stroke", "#000")
-                .style("stroke-width", "1px");
-
-            // Append text for the node box
-            nodeEnter.append("text")
-                .attr("dy", "0.35em")
-                .attr("text-anchor", "middle")
-                .text(d => d.data.name)
-                .style("fill-opacity", 1e-6);
-
-            // Update nodes to their new position.
-            const nodeUpdate = nodeEnter.merge(node);
-            nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.y},${d.x})`);
-
-            // Update styles for the rect and text
-            nodeUpdate.select("rect")
-                .attr("width", 220)
-                .attr("height", 48)
-                .attr("x", -110)
-                .attr("y", -24)
-                .attr("cursor", "pointer")
-                .style("fill", d => {
                     switch (d.depth) {
                         case 0: return "#f28e2c";
                         case 1: return "#e15759";
@@ -142,16 +109,31 @@ const MindMap = ({ data }) => {
                         case 3: return "#4e79a7";
                         default: return "#bab0ac";
                     }
-                });
+                })
+                .style("stroke", "#000")
+                .style("stroke-width", "1px")
+                .attr("cursor", "pointer")
+                .style("opacity", 1e-6);
+
+            nodeEnter.append("text")
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .text(d => d.data.name)
+                .style("fill-opacity", 1e-6);
+
+            const nodeUpdate = nodeEnter.merge(node);
+            nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.y},${d.x})`);
+            
+            nodeUpdate.select("rect")
+                .style("opacity", 1);
             
             nodeUpdate.select("text")
                 .style("fill-opacity", 1)
                 .style("font-size", "16px");
 
-            // Exit removed nodes.
             const nodeExit = node.exit().transition().duration(duration).attr("transform", d => `translate(${source.y},${source.x})`).remove();
             
-            nodeExit.select("rect").attr("width", 1e-4).attr("height", 1e-4);
+            nodeExit.select("rect").style("opacity", 1e-6);
             nodeExit.select("text").style("fill-opacity", 1e-6);
 
             const link = gRef.current.selectAll("path.link").data(links, d => d.target.id);
@@ -199,7 +181,8 @@ const MindMap = ({ data }) => {
     const handleGoBack = () => {
         if (!currentRoot || !data) return;
         const findParent = (node, targetData) => {
-            if (!node || !node.children) return null;
+            if (node.data === targetData) return null;
+            if (!node.children) return null;
             for (const child of node.children) {
                 if (child.data === targetData) return node.data;
                 const result = findParent(child, targetData);
@@ -217,7 +200,7 @@ const MindMap = ({ data }) => {
     };
 
     return (
-        <div style={{ position: 'relative' }}>
+        <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
             <style>
                 {`
                     .node rect {
@@ -250,6 +233,10 @@ const MindMap = ({ data }) => {
                     }
                     .details-box h3 { margin-top: 0; }
                     .details-box p { margin: 5px 0; }
+                    .details-box ul { list-style-type: none; padding: 0; margin: 0; }
+                    .details-box li { padding: 5px 0; border-bottom: 1px solid #eee; }
+                    .details-box li:last-child { border-bottom: none; }
+                    .details-box strong { font-weight: bold; }
                     .go-back-btn {
                         position: absolute;
                         top: 20px;
@@ -272,18 +259,15 @@ const MindMap = ({ data }) => {
             {selectedNode && (
                 <div className="details-box">
                     <h3>Node Details</h3>
-                    {Object.keys(selectedNode).map((key) => {
-                        // Check for null or undefined values, and skip the 'children' and 'name' keys
-                        if (key !== 'children' && key !== 'name' && selectedNode[key] !== null && selectedNode[key] !== undefined) {
-                            return (
-                                <p key={key}>
-                                    <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {selectedNode[key].toString()}
-                                </p>
-                            );
-                        }
-                        return null;
-                    })}
-                    <p><strong>Name:</strong> {selectedNode.name}</p>
+                    {selectedNode.attributes ? (
+                        <ul>
+                            {Object.entries(selectedNode.attributes).map(([key, value]) => (
+                                <li key={key}><strong>{key}:</strong> {value}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p><strong>Name:</strong> {selectedNode.name}</p>
+                    )}
                 </div>
             )}
         </div>
