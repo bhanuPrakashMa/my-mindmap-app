@@ -176,7 +176,8 @@ def load_json_file(file_path):
         print(f"Error: Failed to decode '{file_path}' as UTF-8: {e}", file=sys.stderr)
         sys.exit(1)
 
-base_path = 'e:/chall_dehn/final/my-mindmap-app'
+# base_path = 'e:/chall_dehn/final/my-mindmap-app'
+base_path = os.path.dirname(os.path.abspath(__file__))
 hauptprozess_map = load_json_file(f'{base_path}/hauptprozess_map.json')
 enhanced_matrix = load_json_file(f'{base_path}/enhanced_matrix.json')
 process_data = load_json_file(f'{base_path}/process_data.json')

@@ -1,0 +1,280 @@
+/* General container and text styles */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: #f0f4f8; /* A soft background color */
+    text-align: center;
+}
+
+.home-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1a202c; /* Dark text for readability */
+    margin-bottom: 1rem;
+}
+
+.home-description {
+    font-size: 1.25rem;
+    color: #4a5568; /* Slightly lighter text for description */
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+/* Link/Button styles */
+.home-link-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #4f46e5; /* A vibrant purple color */
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s ease;
+}
+
+.home-link-button:hover {
+    background-color: #4338ca; /* Darker purple on hover */
+}
+
+/* Search and card styles for integration from Index.tsx */
+
+/* Main layout for the search section */
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.relative {
+    position: relative;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Ambient gradient effect */
+.pointer-events-none {
+    pointer-events: none;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.-z-10 {
+    z-index: -10;
+}
+
+.opacity-30 {
+    opacity: 0.3;
+}
+
+.bg-gradient-primary {
+    background-image: linear-gradient(to right, #6d28d9, #8b5cf6); /* Example gradient */
+}
+
+.blur-3xl {
+    filter: blur(48px);
+}
+
+.h-\[40rem\] {
+    height: 40rem;
+}
+
+.w-\[40rem\] {
+    width: 40rem;
+}
+
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mt-\[-10rem\] {
+    margin-top: -10rem;
+}
+
+/* Section and header */
+.container {
+    max-width: 1024px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-16 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+.max-w-4xl {
+    max-width: 56rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mb-10 {
+    margin-bottom: 2.5rem;
+}
+
+.text-4xl {
+    font-size: 2.25rem;
+}
+
+.md\:text-5xl {
+    /* For medium screens and up */
+    @media (min-width: 768px) {
+        font-size: 3rem;
+    }
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.tracking-tight {
+    letter-spacing: -0.025em;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.text-balance {
+    text-wrap: balance;
+}
+
+/* Card and form styles */
+.elevated {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+.grid {
+    display: grid;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+/* Input and button styles */
+.bg-white {
+    background-color: #ffffff;
+}
+
+.border {
+    border-width: 1px;
+}
+
+.border-black {
+    border-color: #000000;
+}
+
+.p-3 {
+    padding: 0.75rem;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.text-black {
+    color: #000000;
+}
+
+.bg-violet-600 {
+    background-color: #7c3aed;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.hover\:bg-violet-700:hover {
+    background-color: #6d28d9;
+}
+
+.focus\:ring:focus {
+    --tw-ring-color: rgba(124, 58, 237, 1);
+}
+
+.focus\:ring-violet-300:focus {
+    --tw-ring-color: #c4b5fd;
+}
+
+/* Results section */
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-muted-foreground {
+    color: #718096;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.rounded-md {
+    border-radius: 0.375rem;
+}
+
+.bg-secondary {
+    background-color: #e2e8f0;
+}
+
+.text-secondary-foreground {
+    color: #2d3748;
+}

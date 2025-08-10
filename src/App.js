@@ -97,13 +97,16 @@
 // }
 
 // export default App;
-
 import React, { useState, useEffect } from 'react';
 import MindMapContainer from './components/MindMapContainer';
 import MindMapList from './components/MindMapList';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './App.css';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import HomePage from './HomePage'; // Import the new HomePage component
+import NotFound from './NotFound.tsx';
+import { Toaster } from 'sonner';
 
 function App() {
     const [allMindMaps, setAllMindMaps] = useState([]);
@@ -113,11 +116,9 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [saveMessage, setSaveMessage] = useState('');
 
-    // Function to fetch mind maps from the backend
     const loadMindMaps = async () => {
         setLoading(true);
         try {
-            // Make a fetch call to the Node.js backend
             const response = await fetch('http://localhost:5000/api/mindmaps');
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -131,13 +132,11 @@ function App() {
             }
         } catch (error) {
             console.error("Failed to fetch mind maps:", error);
-            // Handle error, e.g., display an error message to the user
         } finally {
             setLoading(false);
         }
     };
 
-    // Function to handle saving the mind map as a PDF
     const handleSave = async () => {
         setSaveMessage('Saving...');
         try {
@@ -146,24 +145,19 @@ function App() {
                 throw new Error("Mind map container element not found.");
             }
 
-            // Use html2canvas to capture the content of the container
             const canvas = await html2canvas(mindMapElement, {
                 useCORS: true,
                 scale: 2,
             });
 
-            // Get the image data from the canvas
             const imgData = canvas.toDataURL('image/png');
 
-            // Create a new jsPDF instance, setting a landscape orientation
             const pdf = new jsPDF('landscape', 'pt', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-            // Add the image to the PDF
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-            // Save the PDF file with a dynamic name
             pdf.save(`mindmap-${selectedMapId || 'untitled'}.pdf`);
 
             setSaveMessage('Solutions saved in PDF form.');
@@ -171,54 +165,60 @@ function App() {
             console.error("Failed to save PDF:", error);
             setSaveMessage('Failed to save the Solutions.');
         } finally {
-            // Clear the message after a delay
             setTimeout(() => setSaveMessage(''), 3000);
         }
     };
 
-    // Load mind maps on initial component mount
     useEffect(() => {
         loadMindMaps();
     }, []);
 
-    // Update the data whenever a new map is selected
     useEffect(() => {
         const newMap = allMindMaps.find(map => map.id === selectedMapId);
         if (newMap) {
             setSelectedMapData(newMap.data);
-            setMindMapKey(prevKey => prevKey + 1); // Increment the key to force re-mount
+            setMindMapKey(prevKey => prevKey + 1);
         }
     }, [selectedMapId, allMindMaps]);
 
     return (
-        <div className="App">
-            <h1 className="main-header"> Production Equipment Engineering </h1>
-            <div className='save-button-container'>
-                <button className="save-button" onClick={handleSave}>Save as PDF</button>
-                {saveMessage && <div className="save-message">{saveMessage}</div>}
-            </div>
-            <div className="main-content">
-                {loading ? (
-                    <div className="loading-state">
-                        <p>Loading mind maps...</p>
-                    </div>
-                ) : (
-                    <>
-                        <MindMapList
-                            mindMaps={allMindMaps}
-                            onSelect={setSelectedMapId}
-                            activeId={selectedMapId}
-                        /> 
-                        <div className="mindmap-view-container">
-                            <MindMapContainer
-                                data={selectedMapData}
-                                mindMapKey={mindMapKey}
-                            />
+        <Router>
+            <Toaster />
+            <Routes>
+                <Route path="/" element={<HomePage />} /> {/* Set the new HomePage as the root route */}
+                <Route path="/mindmaps" element={
+                    <div className="App">
+                        <h1 className="main-header">Production Equipment Engineering</h1>
+                        <div className='save-button-container'>
+                            <button className="save-button" onClick={handleSave}>Save as PDF</button>
+                            {saveMessage && <div className="save-message">{saveMessage}</div>}
                         </div>
-                    </>
-                )}
-            </div>
-        </div>
+                        <div className="main-content">
+                            {loading ? (
+                                <div className="loading-state">
+                                    <p>Loading mind maps...</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <MindMapList
+                                        mindMaps={allMindMaps}
+                                        onSelect={setSelectedMapId}
+                                        activeId={selectedMapId}
+                                    />
+                                    <div className="mindmap-view-container">
+                                        <MindMapContainer
+                                            data={selectedMapData}
+                                            mindMapKey={mindMapKey}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                } />
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </Router>
     );
 }
 
