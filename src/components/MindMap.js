@@ -97,7 +97,7 @@ const MindMap = ({ data }) => {
                 .attr("transform", d => {
                     if (d.data === data) { // Root node
                         return `translate(${-rootNodeSize.width / 2}, ${-rootNodeSize.height / 2})`;
-                    } else if (d.children) { // Parent node
+                    } else if (d.children || d._children) { // Parent node (has children or collapsed children)
                         return `translate(${-parentNodeSize.width / 2}, ${-parentNodeSize.height / 2})`;
                     } else { // Leaf node
                         return `translate(${-cuboidSize.width / 2}, ${-cuboidSize.height / 2})`;
@@ -118,7 +118,7 @@ const MindMap = ({ data }) => {
                         // Top face
                         group.append("path")
                             .attr("d", `M0 20 L20 0 L180 0 L160 20 Z`)
-                            .style("fill", "#ce1414ff")
+                            .style("fill", "#e3d5d5ff")
                             .style("stroke", "#ce1414ff")
                             .style("stroke-width", "1px");
                         // Right face (spine)
@@ -127,7 +127,7 @@ const MindMap = ({ data }) => {
                             .style("fill", "#ce1414ff")
                             .style("stroke", "#ce1414ff")
                             .style("stroke-width", "1px");
-                    } else if (d.children) {
+                    } else if (d.children || d._children) {
                         // Parent nodes: single large book
                         // Main body (red)
                         group.append("path")
@@ -151,18 +151,18 @@ const MindMap = ({ data }) => {
                         // Leaf nodes: cuboid
                         group.append("path")
                             .attr("d", `M0 20 L0 80 L100 80 L100 20 L0 20 Z`)
-                            .style("fill", "#187a49ff")
-                            .style("stroke", "#108a37ff")
+                            .style("fill", "#249d61ff")
+                            .style("stroke", "#249d61ff")
                             .style("stroke-width", "1px");
                         group.append("path")
                             .attr("d", `M0 20 L20 0 L120 0 L100 20 Z`)
-                            .style("fill", "#108a37ff")
-                            .style("stroke", "#108a37ff")
+                            .style("fill", "#249d61ff")
+                            .style("stroke", "#249d61ff")
                             .style("stroke-width", "1px");
                         group.append("path")
                             .attr("d", `M100 20 L120 0 L120 60 L100 80 Z`)
-                            .style("fill", "#108a37ff")
-                            .style("stroke", "#108a37ff")
+                            .style("fill", "#249d61ff")
+                            .style("stroke", "#249d61ff")
                             .style("stroke-width", "1px");
                     }
                 });
@@ -232,16 +232,27 @@ const MindMap = ({ data }) => {
         const handleClick = (event, d) => {
             event.stopPropagation();
             setSelectedNode(d.data);
-            if (d.data !== currentRoot) {
-                if (d.children) {
-                    d._children = d.children;
-                    d.children = null;
-                } else {
-                    d.children = d._children;
-                    d._children = null;
+            
+            if (d.children) {
+                // Collapse the node
+                d._children = d.children;
+                d.children = null;
+            } else {
+                // Expand the node
+                d.children = d._children;
+                d._children = null;
+
+                // New logic: If the expanded node is the root, collapse its children's children
+                if (d.data === data && d.children) {
+                    d.children.forEach(child => {
+                        if (child.children) {
+                            child._children = child.children;
+                            child.children = null;
+                        }
+                    });
                 }
-                update(d);
             }
+            update(d);
         };
     }, [data]);
 
