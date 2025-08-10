@@ -88,11 +88,91 @@ const MindMap = ({ data }) => {
                 .attr("transform", d => `translate(${source.y0},${source.x0})`)
                 .on("click", (event, d) => handleClick(event, d));
 
+            const cuboidSize = { width: 100, height: 60 };
+            const parentNodeSize = { width: 120, height: 70 };
+            const rootNodeSize = { width: 180, height: 100 };
+
+            nodeEnter.append("g")
+                .attr("class", "node-shape")
+                .attr("transform", d => {
+                    if (d.data === data) { // Root node
+                        return `translate(${-rootNodeSize.width / 2}, ${-rootNodeSize.height / 2})`;
+                    } else if (d.children) { // Parent node
+                        return `translate(${-parentNodeSize.width / 2}, ${-parentNodeSize.height / 2})`;
+                    } else { // Leaf node
+                        return `translate(${-cuboidSize.width / 2}, ${-cuboidSize.height / 2})`;
+                    }
+                })
+                .style("opacity", 1e-6)
+                .each(function(d) {
+                    const group = d3.select(this);
+
+                    // Draw a large container/book for the root node
+                    if (d.data === data) {
+                        // Main body
+                        group.append("path")
+                            .attr("d", `M0 20 L0 100 L160 100 L160 20 Z`)
+                            .style("fill", "#ce1414ff")
+                            .style("stroke", "#ce1414ff")
+                            .style("stroke-width", "1px");
+                        // Top face
+                        group.append("path")
+                            .attr("d", `M0 20 L20 0 L180 0 L160 20 Z`)
+                            .style("fill", "#ce1414ff")
+                            .style("stroke", "#ce1414ff")
+                            .style("stroke-width", "1px");
+                        // Right face (spine)
+                        group.append("path")
+                            .attr("d", `M160 20 L180 0 L180 80 L160 100 Z`)
+                            .style("fill", "#ce1414ff")
+                            .style("stroke", "#ce1414ff")
+                            .style("stroke-width", "1px");
+                    } else if (d.children) {
+                        // Parent nodes: single large book
+                        // Main body (red)
+                        group.append("path")
+                            .attr("d", `M0 20 L0 70 L120 70 L120 20 Z`)
+                            .style("fill", "#e74c3c")
+                            .style("stroke", "#ce1414ff")
+                            .style("stroke-width", "1px");
+                        // Top face (pages)
+                        group.append("path")
+                            .attr("d", `M0 20 L15 0 L135 0 L120 20 Z`)
+                            .style("fill", "#d41f1fff")
+                            .style("stroke", "#ed2020ff")
+                            .style("stroke-width", "1px");
+                        // Right face (spine - darker red)
+                        group.append("path")
+                            .attr("d", `M120 20 L135 0 L135 50 L120 70 Z`)
+                            .style("fill", "#dfd6d6ff")
+                            .style("stroke", "#262424ff")
+                            .style("stroke-width", "1px");
+                    } else {
+                        // Leaf nodes: cuboid
+                        group.append("path")
+                            .attr("d", `M0 20 L0 80 L100 80 L100 20 L0 20 Z`)
+                            .style("fill", "#187a49ff")
+                            .style("stroke", "#108a37ff")
+                            .style("stroke-width", "1px");
+                        group.append("path")
+                            .attr("d", `M0 20 L20 0 L120 0 L100 20 Z`)
+                            .style("fill", "#108a37ff")
+                            .style("stroke", "#108a37ff")
+                            .style("stroke-width", "1px");
+                        group.append("path")
+                            .attr("d", `M100 20 L120 0 L120 60 L100 80 Z`)
+                            .style("fill", "#108a37ff")
+                            .style("stroke", "#108a37ff")
+                            .style("stroke-width", "1px");
+                    }
+                });
+            
             // Append text and add two lines for ID and name
             nodeEnter.append("text")
                 .attr("text-anchor", "middle")
                 .style("fill", "white")
                 .style("fill-opacity", 1e-6)
+                .attr("cursor", "pointer")
                 .each(function(d) {
                     const name = d.data.name;
                     const truncatedName = name.length > 9 ? name.substring(0, 9) + '...' : name;
@@ -100,55 +180,27 @@ const MindMap = ({ data }) => {
                     d3.select(this).append("tspan")
                         .attr("x", 0)
                         .attr("y", -8)
+                        .style("font-size", "14px")
                         .text(`ID: ${d.data.id}`);
                     d3.select(this).append("tspan")
                         .attr("x", 0)
                         .attr("y", 8)
+                        .style("font-size", "14px")
                         .text(truncatedName);
                 });
-
-            // Now that text is set, we can calculate the real dimensions
-            nodeEnter.each(function(d) {
-                const bbox = d3.select(this).select("text").node().getBBox();
-                d.width = bbox.width;
-                d.height = bbox.height;
-            });
-            
-            // Append the rectangle and size it based on the text's bounding box
-            nodeEnter.insert("rect", "text")
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("x", d => -(d.width / 2) - 15) // Add padding
-                .attr("y", d => -(d.height / 2) - 10) // Add padding
-                .attr("width", d => d.width + 30) // Add padding
-                .attr("height", d => d.height + 20) // Add padding
-                .style("fill", d => {
-                    switch (d.depth) {
-                        case 0: return "#f28e2c";
-                        case 1: return "#e15759";
-                        case 2: return "#76b7b2";
-                        case 3: return "#4e79a7";
-                        default: return "#bab0ac";
-                    }
-                })
-                .style("stroke", "#000")
-                .style("stroke-width", "1px")
-                .attr("cursor", "pointer")
-                .style("opacity", 1e-6);
 
             const nodeUpdate = nodeEnter.merge(node);
             nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.y},${d.x})`);
             
-            nodeUpdate.select("rect")
+            nodeUpdate.select(".node-shape")
                 .style("opacity", 1);
             
             nodeUpdate.select("text")
-                .style("fill-opacity", 1)
-                .style("font-size", "16px");
+                .style("fill-opacity", 1);
 
             const nodeExit = node.exit().transition().duration(duration).attr("transform", d => `translate(${source.y},${source.x})`).remove();
             
-            nodeExit.select("rect").style("opacity", 1e-6);
+            nodeExit.select(".node-shape").style("opacity", 1e-6);
             nodeExit.select("text").style("fill-opacity", 1e-6);
 
             const link = gRef.current.selectAll("path.link").data(links, d => d.target.id);
@@ -218,13 +270,13 @@ const MindMap = ({ data }) => {
         <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
             <style>
                 {`
-                    .node rect {
-                        stroke: steelblue;
-                        stroke-width: 1px;
-                        transition: stroke-width 0.2s ease;
+                    .node-shape {
+                        cursor: pointer;
+                        -webkit-user-select: none;
+                        -moz-user-select: none;
+                        user-select: none;
                     }
                     .node text { 
-                        font-size: 16px;
                         fill: white;
                         pointer-events: none;
                         font-weight: bold;
